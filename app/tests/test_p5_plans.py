@@ -2,7 +2,7 @@ import pytest
 from concurrent.futures import ThreadPoolExecutor
 from app.backend.storage.database import Store
 from app.backend.domain.profile import save_profile
-from app.backend.domain.plans import generate,change,allowed,profile_gate,RECIPES
+from app.backend.domain.plans import generate,change,allowed,profile_gate,ensure_current_plan,RECIPES,RULE_VERSION
 from app.backend.domain.records import summary,delete_record,save_record
 from app.backend.errors import AppError
 from app.tests.helpers import profile
@@ -66,3 +66,36 @@ def test_stew_only_profile_has_recommendations_and_alternatives_for_main_meals(t
         assert len(meals[name]['alternatives'])>=2
         assert all(option['method']=='炖' for option in meals[name]['alternatives'])
     s.close()
+
+def test_existing_partial_plan_gains_missing_meals_once_without_changing_existing(tmp_path):
+    from datetime import date
+    s=setup(tmp_path,methods=['炖']);d=date.today().isoformat();plan=generate(s,d)
+    breakfast=plan['meals'][0].copy()
+    for meal in plan['meals'][1:3]:
+        meal.update(recommendation=None,recipe_id=None,alternatives=[])
+    plan['rule_version']='nutrition-1'
+    partial=s.put('plan',d,plan,day=d,version=plan['version'])
+    repaired=ensure_current_plan(s,d)
+    assert repaired['version']==partial['version']+1
+    assert repaired['meals'][0]==breakfast
+    assert all(m['recommendation'] for m in repaired['meals'][:3])
+    assert not s.list('record') and ensure_current_plan(s,d)==repaired
+    repaired['manual']=True;repaired['meals'][1]['recommendation']=None
+    manual=s.put('plan',d,repaired,day=d,version=repaired['version'])
+    assert ensure_current_plan(s,d)==manual
+    s.close()
+
+def test_incomplete_current_plan_is_not_regenerated_forever_by_current_rules(tmp_path):
+    from datetime import date
+    s=setup(tmp_path,methods=['烤']);d=date.today().isoformat();plan=generate(s,d)
+    assert plan['rule_version']==RULE_VERSION and not plan['meals'][1]['recommendation']
+    assert ensure_current_plan(s,d)==plan
+    assert ensure_current_plan(s,d)==plan
+    s.close()
+
+def test_original_recipe_identifiers_keep_the_same_foods_and_meal_type():
+    recipes={r['id']:r for r in RECIPES}
+    assert recipes['recipe-9']['meals']==['午餐']
+    assert [(x['food_id'],x['grams']) for x in recipes['recipe-9']['items']]==[
+        ('usda-168878',180),('usda-171478',130),('usda-169967',200),('usda-171413',5)]
+    assert recipes['recipe-25']['name']=='苹果与酸奶'

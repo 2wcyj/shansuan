@@ -9,6 +9,7 @@ from .profile import targets
 from .records import save_record,MEALS
 
 RECIPES=json.loads((Path(__file__).resolve().parents[2]/'resources/recipes.json').read_text(encoding='utf-8'))
+RULE_VERSION='nutrition-2'
 ALIASES={'大豆':{'大豆','豆'},'牛奶':{'牛奶','奶','乳'},'海鲜':{'海鲜','鱼','贝类','虾','蟹'},'贝类':{'贝类','虾','蟹','海鲜'},'坚果':{'坚果','杏仁','核桃','腰果'},'鸡蛋':{'鸡蛋','蛋'},'小麦':{'小麦','面粉','麸质'},'花生':{'花生'},'芝麻':{'芝麻'},'芒果':{'芒果'}}
 
 
@@ -103,7 +104,7 @@ def generate(s,d,version=None,adjustment=None,*,preview=False):
         if not cs:
             meals.append({'id':str(i),'meal':meal,'status':'pending','recipe_id':None,'recommendation':None,'alternatives':[],'shortage':'当前资料与限制下没有可验证候选，请手动记录或调整实际条件，不降低过敏限制','reason':reason,'record_ids':[]});continue
         meals.append({'id':str(i),'meal':meal,'status':'pending','recipe_id':cs[0]['id'],'recommendation':cs[0],'alternatives':cs[1:3], 'shortage':'' if len(cs)>=3 else '符合限制的替代不足两种，未强行凑数','reason':reason,'record_ids':[]})
-    data={'meals':meals,'profile_version':p['version'],'rule_version':'nutrition-1','needs_review':False,'targets':t,'manual':False,'adjustment':adjustment,'nutrition':aggregate([it for m in meals if m['recommendation'] for it in m['recommendation']['items']])}
+    data={'meals':meals,'profile_version':p['version'],'rule_version':RULE_VERSION,'needs_review':False,'targets':t,'manual':False,'adjustment':adjustment,'nutrition':aggregate([it for m in meals if m['recommendation'] for it in m['recommendation']['items']])}
     if preview:return data
     return s.put('plan',d,data,day=d,version=old['version'] if old else 0)
 
@@ -113,9 +114,24 @@ def ensure_current_plan(s,d):
     if d!=date.today().isoformat():return s.get('plan',d)
     with s.atomic():
         existing=s.get('plan',d)
-        if existing:return existing
         p=s.get('profile','self')
-        if profile_gate(p):return None
+        blocked=profile_gate(p)
+        if existing:
+            main_meals={'早餐','午餐','晚餐'}
+            incomplete=any(m.get('meal') in main_meals and not m.get('recommendation') for m in existing.get('meals',[]))
+            stale=(existing.get('rule_version')!=RULE_VERSION or existing.get('profile_version')!=(p or {}).get('version') or existing.get('needs_review'))
+            if not incomplete or not stale or existing.get('manual') or any(m.get('status')=='recorded' for m in existing.get('meals',[])) or blocked:
+                return existing
+            if existing.get('needs_review') or existing.get('profile_version')!=p['version']:
+                return generate(s,d,version=existing['version'])
+            preview=generate(s,d,adjustment=existing.get('adjustment'),preview=True)
+            for index,meal in enumerate(existing['meals']):
+                if meal['meal'] in main_meals and not meal.get('recommendation'):
+                    existing['meals'][index]=next(m for m in preview['meals'] if m['meal']==meal['meal'])
+            existing['rule_version']=RULE_VERSION
+            existing['nutrition']=aggregate([it for m in existing['meals'] if m['recommendation'] for it in m['recommendation']['items']])
+            return s.put('plan',d,existing,day=d,version=existing['version'])
+        if blocked:return None
         return generate(s,d)
 
 
