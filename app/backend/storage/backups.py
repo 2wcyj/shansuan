@@ -69,6 +69,13 @@ class Backups:
             atomic_file(path,blob)
             return path
 
+    def manual(self):
+        with self.store.lock:
+            path=self.local('manual')
+            previous=sorted(self.directory.glob('manual-*.mnal'),key=lambda p:p.stat().st_mtime,reverse=True)
+            for old in previous[14:]:old.unlink()
+            return path
+
     @staticmethod
     def open_local(blob):
         if blob[:4] != b'MNAL':

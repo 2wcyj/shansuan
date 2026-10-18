@@ -16,6 +16,12 @@ def backup(request:Request,body:dict):
     return Response(blob,media_type='application/octet-stream')
 
 
+@router.post('/backup/local')
+def manual_backup(request:Request):
+    path=request.app.state.backups.manual()
+    return {'name':path.name,'bytes':path.stat().st_size}
+
+
 @router.post('/restore/check')
 async def check(request:Request,file:UploadFile=File(...),password:str=Form(...)):
     blob = await file.read(512*1024*1024+1)

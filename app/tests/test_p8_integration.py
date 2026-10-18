@@ -184,6 +184,21 @@ def test_home_does_not_auto_generate_when_health_status_is_unconfirmed(tmp_path)
             assert s.get('plan',today) is None
     finally:app.state.tasks.close();s.close()
 
+def test_manual_local_backup_endpoint_creates_verified_restore_point(tmp_path):
+    from app.backend.storage.backups import Backups
+    app=create_app(tmp_path);s=app.state.store;save_profile(s,profile())
+    try:
+        with TestClient(app,base_url='http://127.0.0.1:18765') as c:
+            csrf=c.get('/api/session').json()['csrf']
+            response=c.post('/api/data/backup/local',json={},headers={'X-CSRF-Token':csrf})
+            assert response.status_code==200
+            item=response.json();assert item['name'].startswith('manual-') and item['name'].endswith('.mnal')
+            path=s.root/'backups'/item['name'];assert path.is_file() and path.stat().st_size==item['bytes']
+            payload=json.loads(Backups.open_local(path.read_bytes()))
+            assert payload['format']==1 and payload['schema']==1
+            assert item['name'] in [backup['name'] for backup in app.state.backups.listing()]
+    finally:app.state.tasks.close();s.close()
+
 def test_deleted_dated_measurement_can_be_recreated_and_edited(tmp_path):
     s=Store(tmp_path);save_profile(s,profile());d=date.today().isoformat()
     first=life(s,{'date':d,'weight':65});life(s,{'date':d,'version':first['version'],'weight':None})
