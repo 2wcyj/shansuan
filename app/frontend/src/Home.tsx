@@ -5,6 +5,7 @@ import {Camera,ChevronRight,MessageCircle,MoreHorizontal,Plus,X,ShieldCheck} fro
 import {api,Data,useToday,requestKey} from './api';
 import {Notice,useAction,LoadError} from './ui';
 import {ManualSave,navigation} from './Navigation';
+import {AppearanceControl} from './Appearance';
 import './home.css';
 
 function NumberValue({value,unit,decimals=0}:{value:number|null|undefined,unit:string,decimals?:number}){
@@ -25,6 +26,7 @@ function HomeMenu({modelReady,onClose}:{modelReady:boolean,onClose:()=>void}){
   return <dialog ref={ref} className="home-menu" aria-labelledby="home-menu-title" onCancel={e=>{e.preventDefault();close()}} onClick={e=>{if(e.target===e.currentTarget)close()}}>
     <div className="home-menu-heading"><div><h2 id="home-menu-title">膳算</h2><p>留一点时间，照顾自己。</p></div><button type="button" className="home-icon-button" aria-label="关闭更多菜单" onClick={close}><X size={20}/></button></div>
     <nav aria-label="更多功能">{navigation.map(([to,label,Icon])=><NavLink key={to} to={to} end={to==='/'} onClick={close}><Icon size={19}/>{label}<ChevronRight className="home-nav-arrow" size={16}/></NavLink>)}</nav>
+    <div className="home-appearance"><AppearanceControl/></div>
     <div className="home-menu-save"><ManualSave/><p>平时自动保存；手动保存会另外创建本机加密备份。备份与恢复在个人档案中管理。</p></div>
     <div className="home-privacy"><ShieldCheck size={16}/><span>本机私有 · 无需登录<small>{modelReady?'本地模型已就绪':'本地模型未就绪；可手动记录'}</small></span></div>
   </dialog>;
