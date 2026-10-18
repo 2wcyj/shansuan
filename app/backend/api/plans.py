@@ -1,5 +1,5 @@
 from fastapi import APIRouter,Request
-from app.backend.domain.plans import generate,change,profile_gate
+from app.backend.domain.plans import generate,change,profile_gate,ensure_current_plan
 from app.backend.domain.records import summary
 from app.backend.domain.food import day
 from app.backend.domain.profile import targets
@@ -11,7 +11,7 @@ def get(date:str,request:Request):
     s=request.app.state.store
     from app.backend.domain.feedback import reconcile
     reconcile(s)
-    return {'plan':s.get('plan',day(date)),'blocked':profile_gate(s.get('profile','self'))}
+    return {'plan':ensure_current_plan(s,date),'blocked':profile_gate(s.get('profile','self'))}
 
 @router.post('/plans/{date}/generate')
 def make(date:str,request:Request,body:dict):
@@ -29,4 +29,4 @@ def home(date:str,request:Request):
     from app.backend.domain.feedback import reconcile
     reconcile(s)
     p=s.get('profile','self')
-    return {**summary(s,date),'plan':s.get('plan',date),'profile':p,'targets':targets(p),'feedback':s.get('feedback',date),'blocked':profile_gate(p)}
+    return {**summary(s,date),'plan':ensure_current_plan(s,date),'profile':p,'targets':targets(p),'feedback':s.get('feedback',date),'blocked':profile_gate(p)}

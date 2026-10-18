@@ -158,6 +158,32 @@ def test_first_profile_and_plan_are_atomic_on_plan_write_failure(tmp_path,monkey
             assert s.get('profile','self') is None and not s.list('measurement') and not s.list('plan')
     finally:app.state.tasks.close();s.close()
 
+def test_home_automatically_generates_current_meals_only_for_reviewed_profile(tmp_path):
+    app=create_app(tmp_path/'safe');s=app.state.store;save_profile(s,profile(methods=['炖'],excluded_methods=['烤']));today=date.today().isoformat()
+    try:
+        with TestClient(app,base_url='http://127.0.0.1:18765') as c:
+            c.get('/api/session')
+            assert s.get('plan',today) is None
+            home=c.get('/api/home/'+today).json()
+            plan=home['plan'];meals={m['meal']:m for m in plan['meals']}
+            assert all(meals[name]['recommendation'] for name in ['早餐','午餐','晚餐'])
+            assert all(meals[name]['recommendation']['method']=='炖' for name in ['早餐','午餐','晚餐'])
+            assert all(len(meals[name]['alternatives'])>=2 for name in ['早餐','午餐','晚餐'])
+            assert c.get('/api/plans/'+today).json()['plan']==plan
+            future=(date.today()+timedelta(days=1)).isoformat()
+            assert c.get('/api/plans/'+future).json()['plan'] is None
+    finally:app.state.tasks.close();s.close()
+
+def test_home_does_not_auto_generate_when_health_status_is_unconfirmed(tmp_path):
+    app=create_app(tmp_path);s=app.state.store;save_profile(s,profile(health_status='未填写'));today=date.today().isoformat()
+    try:
+        with TestClient(app,base_url='http://127.0.0.1:18765') as c:
+            c.get('/api/session')
+            home=c.get('/api/home/'+today).json()
+            assert home['blocked'] and home['plan'] is None
+            assert s.get('plan',today) is None
+    finally:app.state.tasks.close();s.close()
+
 def test_deleted_dated_measurement_can_be_recreated_and_edited(tmp_path):
     s=Store(tmp_path);save_profile(s,profile());d=date.today().isoformat()
     first=life(s,{'date':d,'weight':65});life(s,{'date':d,'version':first['version'],'weight':None})

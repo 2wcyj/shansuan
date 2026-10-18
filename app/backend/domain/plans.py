@@ -108,6 +108,17 @@ def generate(s,d,version=None,adjustment=None,*,preview=False):
     return s.put('plan',d,data,day=d,version=old['version'] if old else 0)
 
 
+def ensure_current_plan(s,d):
+    d=day(d)
+    if d!=date.today().isoformat():return s.get('plan',d)
+    with s.atomic():
+        existing=s.get('plan',d)
+        if existing:return existing
+        p=s.get('profile','self')
+        if profile_gate(p):return None
+        return generate(s,d)
+
+
 def change(s,d,meal_id,body):
     with s.atomic():
         plan=s.require('plan',day(d));p=s.require('profile','self')

@@ -26,8 +26,8 @@
     },
     {
       "path": "app/resources/recipes.json",
-      "bytes": 26600,
-      "sha256": "67ad4923db6710223d6a92d8f67ef293aca0d6f95e66395fd365751ad26bff07"
+      "bytes": 48101,
+      "sha256": "ca3e4201f32c2f7e9521d5c5c08fe65950487e45675405adc3ea44b70548ae82"
     },
     {
       "path": ".tools/models/blobs/sha256-2288b043131565ce643c8200cbfdec28f7621b84ffd7cc48336c812740e0b66a",

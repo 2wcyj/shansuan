@@ -56,3 +56,13 @@ def test_replacement_updates_alternatives_and_simple_heating_is_respected(tmp_pa
     for m in p['meals']:
         for c in ([m['recommendation']] if m['recommendation'] else [])+m['alternatives']:assert '即食食品' in c['forms']
     s.close()
+
+def test_stew_only_profile_has_recommendations_and_alternatives_for_main_meals(tmp_path):
+    s=setup(tmp_path,methods=['炖'])
+    plan=generate(s,'2026-10-17');meals={m['meal']:m for m in plan['meals']}
+    for name in ['早餐','午餐','晚餐']:
+        assert meals[name]['recommendation']
+        assert meals[name]['recommendation']['method']=='炖'
+        assert len(meals[name]['alternatives'])>=2
+        assert all(option['method']=='炖' for option in meals[name]['alternatives'])
+    s.close()
