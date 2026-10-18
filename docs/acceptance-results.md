@@ -64,4 +64,4 @@ D01 已修复：正式静态目录指向错误；D02 已修复：转折拆分误
 
 ## 最终全量执行结果
 
-59项pytest全部通过（0失败、0错误、0跳过），14条真实Edge流程全部通过，TypeScript与Vite正式构建通过。完整执行证据：all-tests.xml、browser-results.json、final-run.json。系统依赖的anyio测试接口有一条弃用提示，不影响测试结果。三项人工验收仍按上表保留，未冒充已完成。
+2026-10-18首页视觉更新后全量重跑：67项pytest全部通过（0失败、0错误、0跳过），21组真实Edge流程全部通过（含5组首页视觉与交互检查），TypeScript与Vite正式构建通过。完整执行证据：all-tests.xml、browser-results.json、final-run.json。系统依赖的anyio测试接口有一条弃用提示，不影响测试结果。三项人工验收仍按上表保留，未冒充已完成。首页视觉改动、各页范围及截图依据见 [首页视觉验收](homepage-visual-review.md)。

@@ -1,7 +1,7 @@
 import {useRef,useState,useEffect,ReactNode} from 'react';
 import {useQueryClient} from '@tanstack/react-query';
 import {api} from './api';
-export function Card({title,children,className=''}:{title?:string,children:ReactNode,className?:string}){return <section className={'card '+className}>{title&&<h2>{title}</h2>}{children}</section>}
+export function Card({title,children,className='',id}:{title?:string,children:ReactNode,className?:string,id?:string}){return <section id={id} className={'card '+className}>{title&&<h2>{title}</h2>}{children}</section>}
 export function Field({label,hint,children}:{label:string,hint?:string,children:ReactNode}){return <label className="field"><span>{label}</span>{children}{hint&&<small className="muted">{hint}</small>}</label>}
 export function useAction(){const [busy,setBusy]=useState(false),[error,setError]=useState(''),[message,setMessage]=useState('');const q=useQueryClient();return {busy,error,message,clear:()=>{setError('');setMessage('')},run:async(fn:()=>Promise<unknown>,success='已保存')=>{setBusy(true);setError('');setMessage('');try{const r=await fn();await q.invalidateQueries();setMessage(success);return r;}catch(e){setError((e as Error).message);return undefined;}finally{setBusy(false)}}};}
 export function Notice({action}:{action:ReturnType<typeof useAction>}){return <>{action.busy&&<p role="status">正在处理，请稍候…</p>}{action.error&&<p role="alert" className="error">{action.error}。输入已保留，可重试。</p>}{action.message&&<p role="status" className="success">{action.message}</p>}</>}
