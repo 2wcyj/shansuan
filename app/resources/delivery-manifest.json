@@ -1,0 +1,198 @@
+{
+  "version": "0.1.0",
+  "date": "2026-10-18",
+  "model": "qwen3-vl:2b-instruct",
+  "runtime": "Ollama0.40.6",
+  "files": [
+    {
+      "path": "requirements.lock.txt",
+      "bytes": 499,
+      "sha256": "2aaa3af7320f6b4aa96b8e1ac2bcee3f43b90e8f3931baebaa6f555f47d8baf6"
+    },
+    {
+      "path": ".tools/ollama/ollama.exe",
+      "bytes": 27944328,
+      "sha256": "71d2002d3ae572d5fa8c1d368ce9d1b9a39c7187cf169e8b330c55410bf6c58e"
+    },
+    {
+      "path": ".tools/models/manifests/registry.ollama.ai/library/qwen3-vl/2b-instruct",
+      "bytes": 1284,
+      "sha256": "92dbba19ee0fa4e6b9ea6cb49cec6f790b236230bea650fe972e5333c0df7d56"
+    },
+    {
+      "path": "app/resources/foods.json",
+      "bytes": 54426,
+      "sha256": "9ad7009c7291927bc63a58e024e567b0151b8306ace9570674b6fb278d3bd508"
+    },
+    {
+      "path": "app/resources/recipes.json",
+      "bytes": 26600,
+      "sha256": "67ad4923db6710223d6a92d8f67ef293aca0d6f95e66395fd365751ad26bff07"
+    },
+    {
+      "path": ".tools/models/blobs/sha256-2288b043131565ce643c8200cbfdec28f7621b84ffd7cc48336c812740e0b66a",
+      "bytes": 206,
+      "sha256": "2288b043131565ce643c8200cbfdec28f7621b84ffd7cc48336c812740e0b66a"
+    },
+    {
+      "path": ".tools/models/blobs/sha256-bd2179e37645d5435e0214e5399e5997408a7e9685ba527cbb60726e6a32fd99",
+      "bytes": 1108016576,
+      "sha256": "bd2179e37645d5435e0214e5399e5997408a7e9685ba527cbb60726e6a32fd99"
+    },
+    {
+      "path": ".tools/models/blobs/sha256-4dc7bc5863d7fc3ad784acf677f72f009ab5fd3758855f1996b678b621817190",
+      "bytes": 822540352,
+      "sha256": "4dc7bc5863d7fc3ad784acf677f72f009ab5fd3758855f1996b678b621817190"
+    },
+    {
+      "path": ".tools/models/blobs/sha256-7339fa418c9ad3e8e12e74ad0fd26a9cc4be8703f9c110728a992b193be85cb2",
+      "bytes": 11355,
+      "sha256": "7339fa418c9ad3e8e12e74ad0fd26a9cc4be8703f9c110728a992b193be85cb2"
+    },
+    {
+      "path": ".tools/models/blobs/sha256-f6417cb1e26962991f8e875a93f3cb0f92bc9b4955e004881251ccbf934a19d2",
+      "bytes": 42,
+      "sha256": "f6417cb1e26962991f8e875a93f3cb0f92bc9b4955e004881251ccbf934a19d2"
+    },
+    {
+      "path": ".tools/models/blobs/sha256-afc393e3572c07db0bc84aa460d928a16c75f3fbb9ca9e0dccc4fbd2dafb573e",
+      "bytes": 1120,
+      "sha256": "afc393e3572c07db0bc84aa460d928a16c75f3fbb9ca9e0dccc4fbd2dafb573e"
+    },
+    {
+      "path": ".tools/wheels/annotated_types-0.8.0-py3-none-any.whl",
+      "bytes": 13427,
+      "sha256": "f072f4d804ea359e4eaf198b1af7a8b0943881a87f31bb764f8bf219bb9419e0"
+    },
+    {
+      "path": ".tools/wheels/anyio-4.15.1-py3-none-any.whl",
+      "bytes": 132079,
+      "sha256": "6152fdbbf9a77fdec97731721bebf7c4c44f7c29b424b0065826173efc7ed101"
+    },
+    {
+      "path": ".tools/wheels/certifi-2026.7.22-py3-none-any.whl",
+      "bytes": 136983,
+      "sha256": "62f22742b58a1a33014a2b6b706588a8d7e2a88ae7bd1a6ebe8c992928483775"
+    },
+    {
+      "path": ".tools/wheels/cffi-2.1.1-cp312-cp312-win_amd64.whl",
+      "bytes": 185919,
+      "sha256": "f53e442b08449d42821fa4a4fba000095af9f62742a500f978a9f557ec44339a"
+    },
+    {
+      "path": ".tools/wheels/click-8.5.0-py3-none-any.whl",
+      "bytes": 125251,
+      "sha256": "255bc9599cf7748b4b1a446ccc735421bd08a2ae529a8b88597d3de5664ee360"
+    },
+    {
+      "path": ".tools/wheels/colorama-0.4.6-py3-none-any.whl",
+      "bytes": 25335,
+      "sha256": "4f1d9991f5acc0ca119f9d443620b77f9d6b33703e51011c16baf57afb285fc6"
+    },
+    {
+      "path": ".tools/wheels/cryptography-50.0.1-cp311-abi3-win_amd64.whl",
+      "bytes": 3842826,
+      "sha256": "aed8db4f6d71c51efb89530e12d9464e7bf2923d46c3205dc794a2a93f8c0648"
+    },
+    {
+      "path": ".tools/wheels/fastapi-0.115.12-py3-none-any.whl",
+      "bytes": 95164,
+      "sha256": "e94613d6c05e27be7ffebdd6ea5f388112e5e430c8f7d6494a9d1d88d43e814d"
+    },
+    {
+      "path": ".tools/wheels/h11-0.16.0-py3-none-any.whl",
+      "bytes": 37515,
+      "sha256": "63cf8bbe7522de3bf65932fda1d9c2772064ffb3dae62d55932da54b31cb6c86"
+    },
+    {
+      "path": ".tools/wheels/httpcore-1.0.9-py3-none-any.whl",
+      "bytes": 78784,
+      "sha256": "2d400746a40668fc9dec9810239072b40b4484b640a8c38fd654a024c7a1bf55"
+    },
+    {
+      "path": ".tools/wheels/httpx-0.28.1-py3-none-any.whl",
+      "bytes": 73517,
+      "sha256": "d909fcccc110f8c7faf814ca82a9a4d816bc5a6dbfea25d6591d6985b8ba59ad"
+    },
+    {
+      "path": ".tools/wheels/idna-3.20-py3-none-any.whl",
+      "bytes": 69583,
+      "sha256": "ab7ae7122974553370f0bdb919e1a960b2cd1bc1ef0276416d896db81c14582c"
+    },
+    {
+      "path": ".tools/wheels/iniconfig-2.3.1-py3-none-any.whl",
+      "bytes": 7552,
+      "sha256": "9121e2c1fdb355232495be3194c8dfe87ccc2d5dee45947b78e68f499790d7a7"
+    },
+    {
+      "path": ".tools/wheels/packaging-26.3-py3-none-any.whl",
+      "bytes": 129956,
+      "sha256": "d7193f7c8e4e93f444fde0262bf90af30e16fa0ad0ad44cb553c87339b23cd1c"
+    },
+    {
+      "path": ".tools/wheels/pillow-12.2.0-cp312-cp312-win_amd64.whl",
+      "bytes": 7084129,
+      "sha256": "7f84204dee22a783350679a0333981df803dac21a0190d706a50475e361c93f5"
+    },
+    {
+      "path": ".tools/wheels/pluggy-1.7.0-py3-none-any.whl",
+      "bytes": 27082,
+      "sha256": "7dd7b0d8832ba3cb632c306926ded123429211b83641b35dc5c41ad2d34f9bec"
+    },
+    {
+      "path": ".tools/wheels/pycparser-3.11-py3-none-any.whl",
+      "bytes": 51178,
+      "sha256": "51d5a8ba2be0bbe440b99d2112604c95bbbc3c2748a64260186c541e1729cd80"
+    },
+    {
+      "path": ".tools/wheels/pydantic-2.11.3-py3-none-any.whl",
+      "bytes": 443591,
+      "sha256": "a082753436a07f9ba1289c6ffa01cd93db3548776088aa917cc43b63f68fa60f"
+    },
+    {
+      "path": ".tools/wheels/pydantic_core-2.33.1-cp312-cp312-win_amd64.whl",
+      "bytes": 1956848,
+      "sha256": "1c607801d85e2e123357b3893f82c97a42856192997b95b4d8325deb1cd0c5f4"
+    },
+    {
+      "path": ".tools/wheels/pygments-2.21.0-py3-none-any.whl",
+      "bytes": 1250147,
+      "sha256": "2363c69b61c4a97c838da3b130dcd6468f4848992b21a82f2a63ec34377137d9"
+    },
+    {
+      "path": ".tools/wheels/pytest-8.4.2-py3-none-any.whl",
+      "bytes": 365750,
+      "sha256": "872f880de3fc3a5bdc88a11b39c9710c3497a547cfa9320bc3c5e62fbf272e79"
+    },
+    {
+      "path": ".tools/wheels/python_multipart-0.0.22-py3-none-any.whl",
+      "bytes": 24579,
+      "sha256": "2b2cd894c83d21bf49d702499531c7bafd057d730c201782048f7945d82de155"
+    },
+    {
+      "path": ".tools/wheels/sqlcipher3_wheels-0.5.7-cp312-cp312-win_amd64.whl",
+      "bytes": 2489710,
+      "sha256": "08a06d6876817faf98ac7aeec6b7fb2df0f4f57ebfd8ed9c2c2dad5ee60a41c6"
+    },
+    {
+      "path": ".tools/wheels/starlette-0.46.2-py3-none-any.whl",
+      "bytes": 72037,
+      "sha256": "595633ce89f8ffa71a015caed34a5b2dc1c0cdb3f0f1fbd1e69339cf2abeec35"
+    },
+    {
+      "path": ".tools/wheels/typing_extensions-4.16.0-py3-none-any.whl",
+      "bytes": 45571,
+      "sha256": "481caa481374e813c1b176ada14e97f1f67a4539ce9cfeb3f350d78d6370c2e8"
+    },
+    {
+      "path": ".tools/wheels/typing_inspection-0.4.4-py3-none-any.whl",
+      "bytes": 14750,
+      "sha256": "65b8397ba37ccbce054456aaccddfc91e6e3083c92824df348d96ca832f3f147"
+    },
+    {
+      "path": ".tools/wheels/uvicorn-0.34.2-py3-none-any.whl",
+      "bytes": 62483,
+      "sha256": "deb49af569084536d269fe0a6d67e3754f104cf03aba7c11c40f01aadf33c403"
+    }
+  ]
+}

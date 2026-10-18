@@ -1,0 +1,91 @@
+{
+  "question": "我今天蛋白质够不够？",
+  "date": "2026-10-18",
+  "profile": {
+    "activity": "久坐",
+    "age": 30,
+    "allergens": [],
+    "allergy_notes": "",
+    "allergy_status": "明确无",
+    "body_fat": null,
+    "budget": null,
+    "conditions": [],
+    "cooking": "方便做饭",
+    "diet": "普通饮食",
+    "dislikes": [],
+    "excluded": [],
+    "excluded_methods": [],
+    "exercise_weekly": 3,
+    "forms": [
+      "家庭烹饪"
+    ],
+    "goals": [
+      "日常营养均衡"
+    ],
+    "health_status": "明确无",
+    "height": 165.0,
+    "intolerances": [],
+    "lifestyle": "上班族",
+    "likes": [],
+    "measurement_date": "2026-10-18",
+    "methods": [],
+    "physiology": "普通",
+    "prep_minutes": null,
+    "primary_goal": "日常营养均衡",
+    "professional_energy_max": null,
+    "professional_energy_min": null,
+    "professional_notes": "",
+    "professional_protein": null,
+    "restrictions": [],
+    "sex": "女",
+    "sleep_hours": 7.0,
+    "tastes": [
+      "清淡"
+    ],
+    "waist": null,
+    "weight": 60.0
+  },
+  "records": [
+    {
+      "date": "2026-10-18",
+      "time": "15:50",
+      "meal": "午餐",
+      "items": [
+        {
+          "food_id": "usda-168878",
+          "grams": 150
+        }
+      ]
+    },
+    {
+      "date": "2026-10-18",
+      "time": "15:50",
+      "meal": "早餐",
+      "items": [
+        {
+          "food_id": "usda-169705",
+          "grams": 45.8
+        },
+        {
+          "food_id": "usda-171267",
+          "grams": 254.5
+        },
+        {
+          "food_id": "usda-173944",
+          "grams": 101.8
+        }
+      ]
+    },
+    {
+      "date": "2026-10-18",
+      "time": "12:00",
+      "meal": "午餐",
+      "items": [
+        {
+          "food_id": "usda-168878",
+          "grams": 100
+        }
+      ]
+    }
+  ]
+}
