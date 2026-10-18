@@ -85,6 +85,22 @@ def test_existing_partial_plan_gains_missing_meals_once_without_changing_existin
     assert ensure_current_plan(s,d)==manual
     s.close()
 
+def test_old_manual_plan_fills_only_unrecorded_missing_meals(tmp_path):
+    from datetime import date
+    s=setup(tmp_path,methods=['炖']);d=date.today().isoformat();plan=generate(s,d)
+    breakfast=plan['meals'][0]
+    saved=change(s,d,breakfast['id'],{'version':plan['version'],'action':'confirm','time':'08:00','items':breakfast['recommendation']['items']})
+    existing=saved['plan']
+    for meal in existing['meals'][1:3]:meal.update(recommendation=None,recipe_id=None,alternatives=[])
+    existing.update(rule_version='nutrition-1',manual=True)
+    old=s.put('plan',d,existing,day=d,version=existing['version'])
+    repaired=ensure_current_plan(s,d)
+    assert repaired['meals'][0]==old['meals'][0]
+    assert repaired['manual'] and repaired['version']==old['version']+1
+    assert all(meal['recommendation'] and meal['recommendation']['method']=='炖' for meal in repaired['meals'][1:3])
+    assert len(s.list('record'))==1 and repaired['meals'][0]['status']=='recorded'
+    s.close()
+
 def test_incomplete_current_plan_is_not_regenerated_forever_by_current_rules(tmp_path):
     from datetime import date
     s=setup(tmp_path,methods=['烤']);d=date.today().isoformat();plan=generate(s,d)

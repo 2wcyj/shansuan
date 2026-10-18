@@ -120,13 +120,11 @@ def ensure_current_plan(s,d):
             main_meals={'早餐','午餐','晚餐'}
             incomplete=any(m.get('meal') in main_meals and not m.get('recommendation') for m in existing.get('meals',[]))
             stale=(existing.get('rule_version')!=RULE_VERSION or existing.get('profile_version')!=(p or {}).get('version') or existing.get('needs_review'))
-            if not incomplete or not stale or existing.get('manual') or any(m.get('status')=='recorded' for m in existing.get('meals',[])) or blocked:
+            if not incomplete or not stale or existing.get('profile_version')!=p['version'] or existing.get('needs_review') or blocked:
                 return existing
-            if existing.get('needs_review') or existing.get('profile_version')!=p['version']:
-                return generate(s,d,version=existing['version'])
             preview=generate(s,d,adjustment=existing.get('adjustment'),preview=True)
             for index,meal in enumerate(existing['meals']):
-                if meal['meal'] in main_meals and not meal.get('recommendation'):
+                if meal['meal'] in main_meals and meal.get('status')=='pending' and not meal.get('recommendation'):
                     existing['meals'][index]=next(m for m in preview['meals'] if m['meal']==meal['meal'])
             existing['rule_version']=RULE_VERSION
             existing['nutrition']=aggregate([it for m in existing['meals'] if m['recommendation'] for it in m['recommendation']['items']])
