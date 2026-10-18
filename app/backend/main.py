@@ -13,7 +13,7 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 def create_app(data_dir, port=18765):
-    app = FastAPI(title='我的生活营养助手', version='0.1.0', docs_url=None, redoc_url=None, openapi_url=None)
+    app = FastAPI(title='膳算', version='0.1.0', docs_url=None, redoc_url=None, openapi_url=None)
     app.state.store = Store(data_dir)
     app.state.photos = Photos(app.state.store)
     app.state.backups = Backups(app.state.store)

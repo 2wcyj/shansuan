@@ -23,7 +23,7 @@ function HomeMenu({modelReady,onClose}:{modelReady:boolean,onClose:()=>void}){
   useEffect(()=>{const dialog=ref.current;dialog?.showModal();return()=>dialog?.close()},[]);
   const close=()=>{ref.current?.close();onClose()};
   return <dialog ref={ref} className="home-menu" aria-labelledby="home-menu-title" onCancel={e=>{e.preventDefault();close()}} onClick={e=>{if(e.target===e.currentTarget)close()}}>
-    <div className="home-menu-heading"><div><h2 id="home-menu-title">我的生活营养助手</h2><p>留一点时间，照顾自己。</p></div><button type="button" className="home-icon-button" aria-label="关闭更多菜单" onClick={close}><X size={20}/></button></div>
+    <div className="home-menu-heading"><div><h2 id="home-menu-title">膳算</h2><p>留一点时间，照顾自己。</p></div><button type="button" className="home-icon-button" aria-label="关闭更多菜单" onClick={close}><X size={20}/></button></div>
     <nav aria-label="更多功能">{navigation.map(([to,label,Icon])=><NavLink key={to} to={to} end={to==='/'} onClick={close}><Icon size={19}/>{label}<ChevronRight className="home-nav-arrow" size={16}/></NavLink>)}</nav>
     <div className="home-menu-save"><ManualSave/><p>平时自动保存；手动保存会另外创建本机加密备份。备份与恢复在个人档案中管理。</p></div>
     <div className="home-privacy"><ShieldCheck size={16}/><span>本机私有 · 无需登录<small>{modelReady?'本地模型已就绪':'本地模型未就绪；可手动记录'}</small></span></div>
@@ -50,7 +50,7 @@ export default function Home({modelReady=false}:{modelReady?:boolean}){
   const goals=d?[d.profile.primary_goal,...d.profile.goals.filter((goal:string)=>goal!==d.profile.primary_goal)].join(' · '):'';
   return <div className="nutrition-home">
     <main className="home-content">
-      <header className="home-heading"><div><h1>今日营养</h1><p><time dateTime={date}>{new Date(date+'T12:00:00').toLocaleDateString('zh-CN',{month:'long',day:'numeric',weekday:'long'})}</time></p></div><button type="button" ref={moreRef} className="home-icon-button home-more" aria-label="更多功能" aria-haspopup="dialog" aria-expanded={menu} onClick={()=>setMenu(true)}><MoreHorizontal size={25}/></button></header>
+      <header className="home-heading"><div><h1>今日营养</h1><p><span className="home-app-name">膳算 · </span><time dateTime={date}>{new Date(date+'T12:00:00').toLocaleDateString('zh-CN',{month:'long',day:'numeric',weekday:'long'})}</time></p></div><button type="button" ref={moreRef} className="home-icon-button home-more" aria-label="更多功能" aria-haspopup="dialog" aria-expanded={menu} onClick={()=>setMenu(true)}><MoreHorizontal size={25}/></button></header>
       {!d?<div className="home-loading" aria-busy={q.isPending}><LoadError error={q.error} retry={()=>q.refetch()}/>{!q.error&&<div className="home-skeletons" aria-hidden="true">{[1,2,3,4,5].map(x=><div key={x}/>)}</div>}</div>:<div className="home-cards">
         <OverviewCard kind="energy"><Link className="home-card-body" to="/records" aria-label="今日摄入，查看饮食记录">
           <div className="home-card-copy"><h2>今日摄入</h2><p className="home-subtitle">{goals}</p></div>

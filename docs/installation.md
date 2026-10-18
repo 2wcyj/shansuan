@@ -2,6 +2,14 @@
 
 当前电脑已准备好运行所需环境，双击启动即可。应用不是可随意移动的exe安装包，`.venv`依赖创建它的Python 3.12.14运行环境：`C:/Users/hp/.cache/codex-runtimes/codex-primary-runtime/dependencies/python`。不要删除该目录；在其他兼容Windows电脑可用独立安装的Python3.12重建环境。
 
+## 桌面应用入口
+
+运行项目中的 `安装桌面应用.cmd`，为当前Windows账户创建桌面快捷方式“膳算”。快捷方式使用本机既有 Microsoft Edge 的应用窗口模式、项目内既有Python GUI入口与 `app/resources/app.ico`，不额外下载运行时、不安装浏览器组件或扩展。独立Edge用户资料写入 `%LOCALAPPDATA%\MyNutritionAssistantDesktop\browser`；营养数据库仍留在原来的独立加密数据目录。
+
+配置写入 `%LOCALAPPDATA%\MyNutritionAssistantDesktop\desktop.json`。入口校验本机服务及对应数据目录；找不到原数据目录或端口出现冲突会停止并说明，不会静默建立空档案。桌面入口依赖项目在原位置、Python虚拟环境与已安装Edge仍可用。关闭Edge窗口后，如需释放本地服务请运行项目中的 `停止.cmd`。重新双击图标会连接已在运行且目录匹配的服务。
+
+程序同时提供Web App manifest与PNG/SVG图标。当前Windows环境以桌面快捷方式作为主要入口，无需自行在浏览器中安装PWA。
+
 ## 本地资源
 
 - `.venv/`：本机Python环境，依赖精确版本在`requirements.lock.txt`。

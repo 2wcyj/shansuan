@@ -33,6 +33,9 @@ module.exports=async({page,open,call,check,day,output})=>{
 
   await check('homepage real nutrients, private save menu, keyboard and meal destination',async()=>{
     await open('/');
+    assert.equal(await page.title(),'膳算');
+    assert.equal(await page.locator('meta[name="application-name"]').getAttribute('content'),'膳算');
+    assert((await page.locator('.home-app-name').innerText()).includes('膳算'));
     const data=await call('/home/'+day);
     assert.equal(await card('energy').locator('.home-number').innerText(),String(Math.round(data.nutrition.energy.known)));
     assert.equal(await card('protein').locator('.home-number').innerText(),number(data.nutrition.protein.known));
@@ -48,6 +51,7 @@ module.exports=async({page,open,call,check,day,output})=>{
     await open('/');
     const more=page.getByRole('button',{name:'更多功能',exact:true});
     await more.click();
+    assert.equal(await page.getByRole('dialog').getByRole('heading').innerText(),'膳算');
     assert(await page.getByRole('dialog').evaluate(d=>d.contains(document.activeElement)));
     await page.keyboard.press('Escape');
     await page.getByRole('dialog').waitFor({state:'detached'});

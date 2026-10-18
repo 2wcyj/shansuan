@@ -1,5 +1,6 @@
 """Single local service; built assets only. Does not download dependencies."""
 import argparse
+import asyncio
 import hashlib
 import json
 import msvcrt
@@ -77,6 +78,11 @@ def main():
         threading.Timer(1.5,lambda:webbrowser.open(url)).start()
     print('应用已启动：' + url,flush=True)
     try:
+        # Python 3.12's Windows Proactor transport can fail to detach a reset
+        # browser socket (WinError 10054), leaving server.wait_closed() hanging.
+        # This local HTTP service uses no async subprocesses or pipe transports.
+        if sys.platform == 'win32':
+            asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
         server.run()
     finally:
         app.state.tasks.close()
