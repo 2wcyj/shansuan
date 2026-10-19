@@ -82,6 +82,8 @@ def create_app(data_dir, port=18765):
 
     from app.backend.api.feedback import router as feedback_router
     app.include_router(feedback_router)
+    from app.backend.api.products import router as products_router
+    app.include_router(products_router)
 
     @app.get('/{path:path}')
     def frontend(path:str):

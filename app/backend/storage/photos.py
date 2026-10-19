@@ -57,3 +57,24 @@ class Photos:
             if hashlib.sha256(data).hexdigest() != row['sha256']:
                 raise AppError('照片完整性校验失败','storage',503)
             return data
+
+    def product_file(self,product_id,data,name,role,version):
+        if role not in ['main','detail','label','qualification']:raise AppError('请选择有效附件用途')
+        if not data or len(data)>12*1024*1024:raise AppError('附件不得超过12MB','size',413)
+        if name.lower().endswith('.pdf') and data.startswith(b'%PDF-') and role in ['label','qualification']:
+            content=data;mime='application/pdf'
+        else:
+            if not name.lower().endswith(('.jpg','.jpeg','.png','.webp')):raise AppError('仅接受图片或PDF文件','file',422)
+            content=normalize(data);mime='image/jpeg'
+        id=uuid.uuid4().hex;path=self.store.folder/'photos'/(id+'.enc')
+        try:
+            with self.store.atomic():
+                p=self.store.require('product',product_id)
+                if p['version']!=version:raise AppError('商品已变化，请刷新后重试','conflict',409)
+                atomic_file(path,encrypt(self.store.key,content,id.encode()))
+                self.store.conn.execute('INSERT INTO attachments VALUES (?,?,?)',(id,hashlib.sha256(content).hexdigest(),len(content)))
+                f=self.store.put('product_file',id,{'product_id':product_id,'name':name[:200],'role':role,'mime':mime})
+                self.store.conn.execute('INSERT INTO entity_photos VALUES (?,?,?)',('product_file',id,id))
+                return f
+        except BaseException:
+            path.unlink(missing_ok=True);raise

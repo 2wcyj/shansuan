@@ -7,6 +7,10 @@ MEALS=['早餐','午餐','晚餐','加餐']
 
 
 def save_record(s,body,id=None):
+    old=s.get('record',id) if id else None
+    if old and old.get('source')=='product':
+        from .products import revise_record
+        return revise_record(s,old,body)
     d=day(body.get('date')); meal=body.get('meal')
     if meal not in MEALS:raise AppError('请选择早餐、午餐、晚餐或加餐')
     try:datetime.strptime(body.get('time',''),'%H:%M')
@@ -44,6 +48,9 @@ def delete_record(s,id,version):
         if old.get('analysis_id'):
             a=s.get('analysis',old['analysis_id'])
             if a:s.put('analysis',a['id'],{**a,'record_id':None,'status':'revised'},version=a['version'])
+        if old.get('product_plan_id'):
+            p=s.get('product_plan',old['product_plan_id'])
+            if p:s.put('product_plan',p['id'],{**p,'status':'pending','record_id':None},day=p['day'],version=p['version'])
         return result
 
 

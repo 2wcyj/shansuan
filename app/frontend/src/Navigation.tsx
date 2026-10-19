@@ -1,8 +1,8 @@
-import {House,Utensils,Camera,MessageCircle,CalendarDays,Heart,ChartNoAxesCombined,UserRound,Save} from 'lucide-react';
+import {House,Utensils,Camera,MessageCircle,CalendarDays,Heart,ChartNoAxesCombined,UserRound,Save,Package} from 'lucide-react';
 import {api} from './api';
 import {useAction} from './ui';
 
-export const navigation=[['/','首页',House],['/meals','今日饮食',Utensils],['/photo','拍照分析',Camera],['/chat','智能问答',MessageCircle],['/records','饮食记录',CalendarDays],['/feedback','每日反馈',Heart],['/report','七天报告',ChartNoAxesCombined],['/profile','个人档案',UserRound]] as const;
+export const navigation=[['/','首页',House],['/meals','今日饮食',Utensils],['/photo','拍照分析',Camera],['/chat','智能问答',MessageCircle],['/records','饮食记录',CalendarDays],['/feedback','每日反馈',Heart],['/report','七天报告',ChartNoAxesCombined],['/profile','个人档案',UserRound],['/products','我的产品',Package]] as const;
 
 export function ManualSave(){
   const a=useAction();

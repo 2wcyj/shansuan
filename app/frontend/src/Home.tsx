@@ -53,7 +53,7 @@ export default function Home({modelReady=false}:{modelReady?:boolean}){
   return <div className="nutrition-home">
     <main className="home-content">
       <header className="home-heading"><div><h1>今日营养</h1><p><span className="home-app-name">膳算 · </span><time dateTime={date}>{new Date(date+'T12:00:00').toLocaleDateString('zh-CN',{month:'long',day:'numeric',weekday:'long'})}</time></p></div><button type="button" ref={moreRef} className="home-icon-button home-more" aria-label="更多功能" aria-haspopup="dialog" aria-expanded={menu} onClick={()=>setMenu(true)}><MoreHorizontal size={25}/></button></header>
-      {!d?<div className="home-loading" aria-busy={q.isPending}><LoadError error={q.error} retry={()=>q.refetch()}/>{!q.error&&<div className="home-skeletons" aria-hidden="true">{[1,2,3,4,5].map(x=><div key={x}/>)}</div>}</div>:<div className="home-cards">
+      {!d?<div className="home-loading" aria-busy={q.isPending}><LoadError error={q.error} retry={()=>q.refetch()}/>{!q.error&&<div className="home-skeletons" aria-hidden="true">{[1,2,3,4,5].map(x=><div key={x}/>)}</div>}</div>:<div className="home-cards"><Link className="home-products-link" to="/products">我的产品 <span>本机私有目录 · 自有产品</span> →</Link>
         <OverviewCard kind="energy"><Link className="home-card-body" to="/records" aria-label="今日摄入，查看饮食记录">
           <div className="home-card-copy"><h2>今日摄入</h2><p className="home-subtitle">{goals}</p></div>
           <NumberValue value={energy.known} unit="kcal"/>
