@@ -11,3 +11,5 @@ app/frontend/playwright-report/
 *.tsbuildinfo
 *.log
 personal-data/
+手机安装包/
+app/android/build/
