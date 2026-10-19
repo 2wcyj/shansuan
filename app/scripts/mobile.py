@@ -141,13 +141,14 @@ def launch(host_override=None):
         raise SystemExit('未检测到允许的局域网地址。')
     try:
         import urllib.request
-        with urllib.request.urlopen(f'http://127.0.0.1:18765/api/status', timeout=3) as response:
+        # /api/status requires the desktop session cookie.  /api/session is
+        # intentionally the unauthenticated health/session bootstrap endpoint.
+        with urllib.request.urlopen(f'http://127.0.0.1:18765/api/session', timeout=3) as response:
             status = json.load(response)
     except Exception:
         raise SystemExit('请先启动电脑上的膳算，再启动手机连接。') from None
-    root = status.get('data_path')
-    if not root or not Path(root).is_dir():
-        raise SystemExit('无法确认膳算本机数据目录；为保护资料，已停止手机连接。')
+    if status.get('app') != 'mna':
+        raise SystemExit('当前 18765 端口不是膳算服务，已停止手机连接。')
     from app.backend.mobile import create_mobile_app
     import uvicorn
     private = Path(os.environ.get('LOCALAPPDATA', Path.home())) / 'ShansuanMobile' / 'private'
