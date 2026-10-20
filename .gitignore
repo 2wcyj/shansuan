@@ -13,3 +13,23 @@ app/frontend/playwright-report/
 personal-data/
 手机安装包/
 app/android/build/
+
+# Local credentials, private data, and exports
+.env
+.env.*
+!.env.example
+!.env.sample
+*.keystore
+*.jks
+*.key
+*.p12
+*.pfx
+key.dpapi
+password.txt
+*.mnab
+*.mnal
+*.shansuan
+*.db
+*.sqlite
+*.sqlite3
+*.enc
