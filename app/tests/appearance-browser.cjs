@@ -126,7 +126,8 @@ module.exports=async({browser,url,call,check,day,output})=>{
         await page.getByRole('dialog').waitFor();
         await switchTo(theme==='dark'?'light':'dark');await switchTo(theme);
         assert.equal(new URL(page.url()).pathname,'/');
-        assert.equal(await page.locator('.home-menu nav a').count(),8);
+        assert.deepEqual(await page.locator('.home-menu nav a').evaluateAll(links=>links.map(link=>link.getAttribute('href'))),
+          ['/','/meals','/photo','/chat','/records','/feedback','/report','/profile','/products']);
         await page.screenshot({animations:'disabled',path:path.join(output,`appearance-home-menu-${theme}.png`)});
         await page.keyboard.press('Escape');
         await page.setViewportSize({width:1280,height:1280});await open('/');
