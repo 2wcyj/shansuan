@@ -47,3 +47,5 @@ huaweicloudsdkcore==3.1.223
 huaweicloudsdkkms==3.1.223
 redis==8.2.0
 httpx==0.28.1
+# Alembic's SQLAlchemy dependency, pinned so migrations are reproducible.
+SQLAlchemy==2.1.5
