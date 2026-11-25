@@ -106,6 +106,10 @@ scp -r deploy/huawei <user>@<ecs>:/opt/shansuan/
 # 4) 服务器上创建配置
 install -m 600 /dev/null /etc/shansuan/cloud.env
 vi /etc/shansuan/cloud.env     # 按 deploy/cloud/.env.example 填真实值
+
+# 4b) 部署前自检：拦截占位符、错误 URL、缺项与不安全的 URL scheme
+bash deploy/huawei/preflight.sh /etc/shansuan/cloud.env
+
 cat > /etc/shansuan/compose.env <<'EOF'
 SHANSUAN_IMAGE=swr.cn-north-4.myhuaweicloud.com/<你的组织>/shansuan:0.1.0
 SHANSUAN_ENV_FILE=/etc/shansuan/cloud.env

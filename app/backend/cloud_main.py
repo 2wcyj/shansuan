@@ -27,6 +27,9 @@ from app.backend.cloud.repository import TenantRepository
 from app.backend.cloud.object_store import object_store_from_env, ObjectStoreUnavailable
 from app.backend.cloud.photos import CloudPhotos
 from app.backend.cloud.redis_store import redis_store_from_env, RedisUnavailable
+from app.backend.cloud.ai_tasks import CloudAI
+from app.backend.cloud.ai_model import model_from_env
+from app.backend.api.cloud_ai import router as cloud_ai_router
 from app.backend.cloud.model_client import model_client_from_env
 
 
@@ -79,9 +82,12 @@ def create_cloud_app(settings: CloudSettings, readiness_probe: Callable | None =
             app.state.object_store_ready = True
             if app.state.tenant_repository is not None:
                 app.state.cloud_photos = CloudPhotos(app.state.tenant_repository, objects)
+        app.state.cloud_ai = CloudAI(app.state.tenant_repository, app.state.cloud_photos,
+            model_from_env() if settings.environment != 'test' else None)
         try:
             yield
         finally:
+            await app.state.cloud_ai.close()
             if owned_pool is not None:
                 await owned_pool.close()
 
@@ -130,6 +136,7 @@ def create_cloud_app(settings: CloudSettings, readiness_probe: Callable | None =
     app.include_router(cloud_business_router)
     app.include_router(cloud_products_router)
     app.include_router(cloud_photos_router)
+    app.include_router(cloud_ai_router)
     app.include_router(cloud_ai_router)
 
     @app.exception_handler(ObjectStoreUnavailable)

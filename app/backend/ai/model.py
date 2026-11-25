@@ -8,7 +8,7 @@ from PIL import Image
 from pydantic import BaseModel,Field,ConfigDict
 from typing import Literal
 from app.backend.errors import AppError
-from app.scripts.model_runtime import MODEL,BASE,status
+
 
 class VisibleFood(BaseModel):
     model_config=ConfigDict(extra='forbid')
@@ -30,6 +30,8 @@ class ChatResult(BaseModel):
     recipe_ids:list[str]=Field(max_length=3)
 
 def call(messages,schema,timeout=120):
+    # Imported lazily so cloud deployments never load the local model launcher.
+    from app.scripts.model_runtime import MODEL,BASE
     started=time.monotonic()
     body={'model':MODEL,'messages':messages,'stream':False,'think':False,'format':schema.model_json_schema(),'options':{'num_predict':300 if schema is ChatResult else 650,'temperature':0,'num_ctx':4096}}
     opener=urllib.request.build_opener(urllib.request.ProxyHandler({}))

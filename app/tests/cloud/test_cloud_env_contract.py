@@ -78,3 +78,10 @@ def test_same_origin_deployment_assets_are_present():
     assert '/etc/shansuan/tls' in compose
     assert 'VITE_API_BASE_URL' in script
     assert 'MODEL_BASE_URL' in ENV_EXAMPLE.read_text(encoding='utf-8')
+    assert (deploy / 'migrate.sh').exists()
+    assert (deploy / 'verify.sh').exists()
+    preflight = (deploy / 'preflight.sh').read_text(encoding='utf-8')
+    assert 'REPLACE' in preflight
+    for key in ['DATABASE_URL', 'SESSION_SIGNING_KEY', 'FRONTEND_ORIGINS',
+                'KMS_PROVIDER', 'MODEL_BASE_URL', 'OBS_PROVIDER', 'REDIS_URL']:
+        assert key in preflight

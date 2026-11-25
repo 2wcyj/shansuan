@@ -124,6 +124,22 @@ async def withdraw_consent(request: Request, principal=Depends(_principal)):
                 "WHERE account_id=$1 AND notice_version=$2 AND withdrawn_at IS NULL",
                 principal.account_id, NOTICE_VERSION,
             )
+            # Withdrawal must stop in-flight work immediately. Re-granting consent
+            # later must not revive a task that was already running at withdrawal.
+            from app.backend.api.cloud_profile import repository_for
+            repository = repository_for(request)
+            with tenant_context(principal.account_id):
+                async with repository.atomic(connection=connection):
+                    store = DomainStore(await repository.list())
+                    for task in store.list('task'):
+                        if task['status'] in {'queued', 'running'}:
+                            store.put('task', task['id'], {
+                                **task,
+                                'status': 'cancelled',
+                                'error': '健康信息授权已撤回，进行中的任务已取消',
+                                'lease_until': None,
+                            }, version=task['version'])
+                    await store.flush(repository)
     return {"accepted": False, "notice_version": NOTICE_VERSION}
 
 

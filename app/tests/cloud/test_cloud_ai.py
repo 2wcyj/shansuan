@@ -1,158 +1,142 @@
-"""Cloud AI: schema gates, allergy safety, numbers rendered only from verified data."""
-import socket
+"""Cloud AI boundaries against PostgreSQL/RLS; only synthetic accounts and images."""
+import asyncio
+from datetime import date
+import time
 
-import httpx
-import pytest
-
-from app.backend.cloud.conversation import (parse_selection, parse_vision, prepare_context,
-                                            render_reply)
-from app.backend.cloud.model_client import (CloudModelClient, ModelConfig, ModelInputError,
-                                            ModelUnavailable, model_client_from_env,
-                                            prepare_image)
-from app.backend.errors import AppError
-from app.backend.storage.database import Store
+from app.tests.cloud.test_cloud_photos import photo_app, image_bytes
+from app.tests.helpers import profile
 
 
-def loopback_available():
-    try:
-        left, right = socket.socketpair()
-        left.close()
-        right.close()
-        return True
-    except OSError:
-        return False
+class SyntheticModel:
+    name = 'synthetic-evaluation-model'
+    ready = True
+    async def vision(self, content):
+        assert content.startswith(b'\xff\xd8')
+        return {'foods':[{'name':'未匹配测试食物','ingredients':[], 'grams':100,
+                         'recognition_confidence':'低','portion_confidence':'低'}],
+                'uncertainty':'合成模型仅用于测试'}
+    async def chat(self, payload):
+        return {'intent':'protein','steps':['check_records'],'recipe_ids':[]}
 
 
-requires_loopback = pytest.mark.skipif(not loopback_available(),
-                                       reason='sandbox blocks loopback sockets')
+def setup_ai(app, client, headers):
+    assert client.put('/api/profile', headers=headers,
+                      json={**profile(), 'version':0}).status_code == 200
+    app.state.cloud_ai.model = SyntheticModel()
 
 
-def context(**overrides):
-    value = {
-        'question': '今天蛋白质够吗',
-        'profile': {'primary_goal': '日常营养均衡', 'allergens': [], 'excluded': [],
-                    'intolerances': [], 'conditions': []},
-        'blocked': None,
-        'today': {'recorded': True, 'record_count': 2, 'complete': True,
-                  'protein_known': 42.0, 'protein_complete': True},
-        'protein_target': 60,
-        'available_recipes': [{'id': 'r1', 'name': '番茄鸡蛋面'}],
-        'history': [],
-    }
-    value.update(overrides)
-    return value
+def wait_task(client, task_id):
+    for _ in range(100):
+        response = client.get('/api/tasks/'+task_id)
+        assert response.status_code == 200, response.text
+        value = response.json()
+        if value['status'] not in ['queued','running']:
+            return value
+        time.sleep(.03)
+    raise AssertionError('synthetic task did not finish')
 
 
-def test_selection_rejects_unknown_intent_steps_and_recipes():
-    good = '{"intent":"meals","steps":["check_records"],"recipe_ids":["r1"]}'
-    assert parse_selection(good, {'r1'})['recipe_ids'] == ['r1']
-    for bad in ['{"intent":"hack","steps":["check_records"],"recipe_ids":[]}',
-                '{"intent":"meals","steps":["run_shell"],"recipe_ids":[]}',
-                '{"intent":"meals","steps":[],"recipe_ids":[]}',
-                '{"intent":"meals","steps":["check_records"],"recipe_ids":["unknown"]}',
-                'not json']:
-        with pytest.raises(AppError):
-            parse_selection(bad, {'r1'})
+def test_vision_revises_draft_without_intake_and_remains_tenant_private(photo_app):
+    app, clients, headers, accounts, objects, repository = photo_app
+    a,b=clients; h=headers[0]; setup_ai(app,a,h)
+    photo=a.post('/api/analyses',headers=h,files={'file':('meal.png',image_bytes(),'image/png')}).json()
+    response=a.post('/api/analyses/'+photo['id']+'/analyze',headers=h,json={'request_key':'vision-synthetic-1'})
+    assert response.status_code==200,response.text
+    task=wait_task(a,response.json()['id'])
+    assert task['status']=='succeeded',task
+    assert b.get('/api/tasks/'+task['id']).status_code==404
+    revised=a.get('/api/analyses').json()['items'][0]
+    assert revised['status']=='analyzed'
+    assert revised['nutrition']['protein']['total'] is None
+    assert a.get('/api/records',params={'date':date.today().isoformat()}).json()['record_count']==0
 
 
-def test_reply_numbers_come_from_records_not_from_the_model():
-    selection = {'intent': 'protein', 'steps': ['check_records'], 'recipe_ids': ['r1']}
-    reply = render_reply(selection, context())
-    assert '42.0g' in reply and '60g' in reply and '番茄鸡蛋面' in reply
-    assert '不构成诊断' in reply
+def test_photo_confirmation_reuses_nutrition_rules_and_is_idempotent(photo_app):
+    app,clients,headers,*_=photo_app; a=clients[0];h=headers[0];setup_ai(app,a,h)
+    photo=a.post('/api/analyses',headers=h,files={'file':('meal.png',image_bytes(),'image/png')}).json()
+    food=a.get('/api/foods').json()['items'][0]
+    edited=a.put('/api/analyses/'+photo['id'],headers=h,json={'version':photo['version'],
+        'items':[{'food_id':food['id'],'name':food['name'],'grams':100,'ingredients':[]}],
+        'request_key':'revise-synthetic-1'})
+    assert edited.status_code==200,edited.text
+    body={'version':edited.json()['version'],'date':date.today().isoformat(),'meal':'午餐',
+          'time':'12:00','confirmed_uncertainty':True,'request_key':'confirm-synthetic-1'}
+    first=a.post('/api/analyses/'+photo['id']+'/confirm',headers=h,json=body)
+    assert first.status_code==200,first.text
+    assert a.post('/api/analyses/'+photo['id']+'/confirm',headers=h,json=body).json()['id']==first.json()['id']
+    assert a.get('/api/records',params={'date':body['date']}).json()['record_count']==1
 
 
-def test_reply_flags_unconfirmed_profile_and_partial_records():
-    selection = {'intent': 'protein', 'steps': ['check_records'], 'recipe_ids': []}
-    reply = render_reply(selection, context(
-        blocked='请先确认过敏信息；未填写不能当作无过敏',
-        today={'recorded': True, 'record_count': 1, 'complete': False,
-               'protein_known': 20.0, 'protein_complete': False}))
-    assert '仅已知部分' in reply
-    assert '请先确认过敏信息' in reply
+def test_chat_requires_model_and_valid_decisions_and_never_adds_intake(photo_app):
+    app,clients,headers,*_=photo_app;a=clients[0];h=headers[0];setup_ai(app,a,h)
+    body={'question':'今天蛋白质够吗','date':date.today().isoformat(),'request_key':'chat-synthetic-1'}
+    response=a.post('/api/chat',headers=h,json=body)
+    assert response.status_code==200,response.text
+    task=wait_task(a,response.json()['task']['id'])
+    assert task['status']=='succeeded',task
+    assert task['result']['meta']['model']=='synthetic-evaluation-model'
+    assert '未记录' in task['result']['reply'] or '记录' in task['result']['reply']
+    assert a.get('/api/records',params={'date':body['date']}).json()['record_count']==0
+    assert len(a.get('/api/chats').json()['items'][0]['turns'])==2
+    async def bad(payload):
+        return {'intent':'meals','steps':['check_label'],'recipe_ids':['injected-recipe']}
+    app.state.cloud_ai.model.chat=bad
+    response=a.post('/api/chat',headers=h,json={**body,'request_key':'chat-synthetic-2'})
+    assert wait_task(a,response.json()['task']['id'])['status']=='failed'
 
 
-def test_vision_schema_limits_items_and_confidence():
-    good = ('{"foods":[{"name":"米饭","ingredients":["米"],"grams":150,'
-            '"recognition_confidence":"高","portion_confidence":"低"}],'
-            '"uncertainty":"油盐未知"}')
-    items, uncertainty = parse_vision(good)
-    assert items[0]['grams'] == 150 and uncertainty == '油盐未知'
-    for bad in ['{"foods":[]}', '{"foods":[{"name":"","grams":10}]}',
-                '{"foods":[{"name":"米饭","grams":-1}]}',
-                '{"foods":[' + ','.join(['{"name":"x","grams":1}'] * 5) + ']}',
-                'no json']:
-        with pytest.raises(AppError):
-            parse_vision(bad)
+def test_unconfigured_model_and_csrf_fail_closed_but_emergency_does_not_wait(photo_app):
+    app,clients,headers,*_=photo_app;a=clients[0];h=headers[0]
+    response=a.post('/api/chat',headers=h,json={'question':'今天吃什么','request_key':'no-model-1'})
+    assert response.status_code==503,response.text
+    assert not a.get('/api/model').json()['ready']
+    assert a.post('/api/chat',headers={'Origin':h['Origin']},json={'question':'今天吃什么'}).status_code==403
+    response=a.post('/api/chat',headers=h,json={'question':'胸痛呼吸困难', 'request_key':'emergency-1'})
+    assert response.status_code==200,response.text
+    assert '120' in response.json()['immediate']
 
 
-def test_unknown_confidence_defaults_to_low():
-    items, _ = parse_vision('{"foods":[{"name":"米饭","grams":100,'
-                            '"recognition_confidence":"确定","portion_confidence":"99%"}]}')
-    assert items[0]['recognition_confidence'] == '低'
-    assert items[0]['portion_confidence'] == '低'
+def test_cancelled_task_cannot_write_late_result(photo_app):
+    app,clients,headers,*_=photo_app;a=clients[0];h=headers[0];setup_ai(app,a,h)
+    async def delayed(payload):
+        await asyncio.sleep(.7)
+        return {'intent':'protein','steps':['check_records'],'recipe_ids':[]}
+    app.state.cloud_ai.model.chat=delayed
+    response=a.post('/api/chat',headers=h,json={'question':'今天吃什么','request_key':'cancel-chat-1'})
+    task_id=response.json()['task']['id']
+    assert a.post('/api/tasks/'+task_id+'/cancel',headers=h,json={}).status_code==200
+    time.sleep(.9)
+    assert a.get('/api/tasks/'+task_id).json()['status']=='cancelled'
+    assert len(a.get('/api/chats').json()['items'][0]['turns'])==1
 
 
-def test_model_config_requires_https_and_complete_credentials():
-    assert model_client_from_env({}) is None
-    with pytest.raises(ValueError):
-        model_client_from_env({'MODEL_BASE_URL': 'https://example/v1'})
-    with pytest.raises(ValueError):
-        model_client_from_env({'MODEL_BASE_URL': 'http://example/v1',
-                               'MODEL_API_KEY': 'k', 'MODEL_NAME': 'm'})
-    client = model_client_from_env({'MODEL_BASE_URL': 'https://example/v1/',
-                                    'MODEL_API_KEY': 'k', 'MODEL_NAME': 'm'})
-    assert client.config.base_url == 'https://example/v1'
+def test_consent_withdrawal_discards_in_flight_answer(photo_app):
+    app,clients,headers,*_=photo_app;a=clients[0];h=headers[0];setup_ai(app,a,h)
+    async def delayed(payload):
+        await asyncio.sleep(.7)
+        return {'intent':'protein','steps':['check_records'],'recipe_ids':[]}
+    app.state.cloud_ai.model.chat=delayed
+    response=a.post('/api/chat',headers=h,json={'question':'今天吃什么','request_key':'withdraw-chat-1'})
+    assert response.status_code==200,response.text
+    assert a.post('/api/privacy/consent/withdraw',headers=h,json={}).status_code==200
+    time.sleep(.9)
+    assert a.get('/api/tasks/'+response.json()['task']['id']).status_code==428
+    from app.backend.cloud.domain_store import run_domain
+    rows=asyncio.run(run_domain(app.state.tenant_repository,photo_app[3][0],lambda s:s.list('chat')))
+    assert len(rows[0]['turns'])==1
 
 
-def test_image_upload_is_resized_and_bounded():
-    from PIL import Image
-    import io
-    out = io.BytesIO()
-    Image.new('RGB', (4000, 3000), 'red').save(out, format='PNG')
-    encoded, mime = prepare_image(out.getvalue(), 'image/png')
-    assert mime == 'image/jpeg' and encoded
-    with pytest.raises(ModelInputError):
-        prepare_image(b'not-an-image', 'image/jpeg')
-    with pytest.raises(ModelInputError):
-        prepare_image(b'x', 'image/gif')
-
-
-def test_context_without_profile_is_blocked_and_has_no_recipes(tmp_path):
-    store = Store(tmp_path)
-    value = prepare_context(store, '今天吃什么')
-    assert value['blocked'] == '请先完成个人档案'
-    assert value['available_recipes'] == []
-    assert value['today']['recorded'] is False
-    store.close()
-
-
-@requires_loopback
-def test_chat_and_vision_use_only_the_configured_endpoint():
-    import asyncio
-
-    def handler(request):
-        assert request.url.host == 'model.example'
-        assert request.headers['authorization'] == 'Bearer synthetic'
-        return httpx.Response(200, json={'choices': [{'message': {'content': '{"foods":[]}'}}],
-                                         'usage': {'total_tokens': 7}})
-
-    client = CloudModelClient(ModelConfig('https://model.example/v1', 'synthetic', 'm'),
-                              transport=httpx.MockTransport(handler))
-    result = asyncio.run(client.chat([{'role': 'user', 'content': 'hi'}]))
-    assert result['content'] == '{"foods":[]}'
-    assert result['usage']['total_tokens'] == 7
-
-
-@requires_loopback
-@pytest.mark.parametrize('status,expect', [(401, ModelUnavailable), (429, ModelUnavailable),
-                                           (500, ModelUnavailable)])
-def test_upstream_errors_are_sanitized(status, expect):
-    import asyncio
-    client = CloudModelClient(
-        ModelConfig('https://model.example/v1', 'synthetic', 'm'),
-        transport=httpx.MockTransport(lambda request: httpx.Response(
-            status, json={'error': 'AccessKey=secret-value'})))
-    with pytest.raises(expect) as error:
-        asyncio.run(client.chat([{'role': 'user', 'content': 'hi'}]))
-    assert 'secret-value' not in str(error.value)
+def test_regrant_does_not_revive_a_task_started_before_withdrawal(photo_app):
+    from app.backend.api.cloud_privacy import NOTICE_VERSION
+    app,clients,headers,*_=photo_app;a=clients[0];h=headers[0];setup_ai(app,a,h)
+    async def delayed(payload):
+        await asyncio.sleep(.8)
+        return {'intent':'protein','steps':['check_records'],'recipe_ids':[]}
+    app.state.cloud_ai.model.chat=delayed
+    response=a.post('/api/chat',headers=h,json={'question':'今天吃什么','request_key':'regrant-chat-1'})
+    task_id=response.json()['task']['id']
+    assert a.post('/api/privacy/consent/withdraw',headers=h,json={}).status_code==200
+    assert a.post('/api/privacy/consent',headers=h,json={'notice_version':NOTICE_VERSION,'confirmed':True}).status_code==200
+    time.sleep(1)
+    assert a.get('/api/tasks/'+task_id).json()['status']=='cancelled'
+    assert len(a.get('/api/chats').json()['items'][0]['turns'])==1

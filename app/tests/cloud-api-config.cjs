@@ -20,6 +20,7 @@ const {buildNetlifyHeaders}=require(headersPath);
 
 assert.equal(apiUrl('/profile'),'/api/profile','empty API base preserves local same-origin mode');
 assert.equal(sessionUrl(''),'/api/session','local session bootstrap remains same-origin');
+assert.equal(sessionUrl('', 'cloud'),'/api/auth/session','same-origin cloud still requires account authentication');
 assert.equal(sessionUrl('https://api.example.cn'),'https://api.example.cn/api/auth/session',
  'cloud session bootstrap must use the cloud authentication endpoint');
 assert.equal(apiUrl('/records?date=2026-10-20'),'/api/records?date=2026-10-20');
