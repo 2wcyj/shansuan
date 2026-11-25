@@ -1,6 +1,6 @@
 from fastapi import APIRouter,Request
 from app.backend.domain.food import Foods,aggregate,day
-from app.backend.domain.records import save_record,delete_record,life,drink,summary
+from app.backend.domain.records import save_record,delete_record,life,drink,summary,save_vital,delete_vital,list_vitals
 router=APIRouter(prefix='/api')
 
 def mutation(s,body,fn,scope):
@@ -54,3 +54,20 @@ def put_life(request:Request,body:dict):
 def water(request:Request,body:dict):
     s=request.app.state.store
     return mutation(s,body,lambda:drink(s,body),'water')
+@router.get('/vitals')
+def vitals(request:Request,date:str):return {'items':list_vitals(request.app.state.store,date)}
+
+@router.post('/vitals')
+def vital_add(request:Request,body:dict):
+    s=request.app.state.store
+    return mutation(s,body,lambda:save_vital(s,body),'vital-add')
+
+@router.put('/vitals/{id}')
+def vital_edit(id:str,request:Request,body:dict):
+    s=request.app.state.store;s.require('vital',id)
+    return mutation(s,body,lambda:save_vital(s,body,id),'vital-'+id)
+
+@router.post('/vitals/{id}/delete')
+def vital_delete(id:str,request:Request,body:dict):
+    s=request.app.state.store
+    return mutation(s,body,lambda:delete_vital(s,id,body.get('version')),'vital-delete-'+id)

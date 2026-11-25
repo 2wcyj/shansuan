@@ -5,6 +5,7 @@ import secrets
 import subprocess
 import sys
 import zipfile
+from build_icon import build_android_icons
 
 # Keep the drive-letter path used to invoke this script.  The bundled Android
 # tools are native Windows binaries and some versions cannot open Unicode
@@ -34,6 +35,7 @@ def locate(root, name):
 
 
 def main():
+    build_android_icons()
     jdk = locate(TOOLS / 'jdk', 'javac.exe').parent
     android_jar = locate(TOOLS / 'platform', 'android.jar')
     build_tools = locate(TOOLS / 'build-tools', 'aapt2.exe').parent

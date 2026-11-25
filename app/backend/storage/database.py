@@ -10,6 +10,7 @@ import uuid
 from sqlcipher3 import dbapi2 as sql
 from app.backend.errors import AppError, conflict
 from .crypto import dpapi
+from app.backend.domain.serialization import encode
 
 SCHEMA = 1
 MIGRATIONS = {}  # Future ordered SQL steps, keyed by destination version.
@@ -17,10 +18,6 @@ MIGRATIONS = {}  # Future ordered SQL steps, keyed by destination version.
 
 def now():
     return datetime.now().astimezone().isoformat()
-
-
-def encode(value):
-    return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(',', ':'), allow_nan=False)
 
 
 def atomic_file(path, data):
@@ -210,6 +207,11 @@ class Store:
     def history(self, kind, id):
         with self.lock:
             return [json.loads(r[0]) for r in self.conn.execute('SELECT body FROM history WHERE kind=? AND id=? ORDER BY version',(kind,id)).fetchall()]
+
+    def link(self, source_kind, source_id, target_kind, target_id):
+        with self.atomic():
+            self.conn.execute('INSERT INTO links VALUES (?,?,?,?)',
+                              (source_kind, source_id, target_kind, target_id))
 
     def snapshot(self, path):
         with self.lock:

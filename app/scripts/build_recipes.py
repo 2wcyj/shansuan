@@ -32,10 +32,10 @@ for i in range(8):
     protein_name=by_id['usda-'+str(p)]['name'].split('（')[0]
     vegetable_name=by_id['usda-'+str(v)]['name'].split('（')[0]
     grain_name=by_id['usda-'+str(g)]['name'].split('（')[0]
-    add(grain_name+'与'+protein_name+'、'+vegetable_name+'炖饭',['早餐'],[(g,140),(p,90),(v,120)],'炖',22,10+i,steps=stew_steps)
+    add('、'.join([grain_name,protein_name,vegetable_name]),['早餐'],[(g,140),(p,90),(v,120)],'炖',22,10+i,steps=stew_steps)
     for meal in ['午餐','晚餐']:
         v2=vegetables[(i+(meal=='晚餐')*2)%8]
-        stew_name=protein_name+'与'+by_id['usda-'+str(v2)]['name'].split('（')[0]+'炖饭'
+        stew_name='、'.join([grain_name,protein_name,by_id['usda-'+str(v2)]['name'].split('（')[0]])
         add(stew_name,[meal],[(g,180),(p,130),(v2,200),(171413,5)],'炖',25,14+i,steps=stew_steps)
 Path('app/resources/recipes.json').write_text(json.dumps(recipes,ensure_ascii=False,indent=2),encoding='utf-8')
 print(f'{len(recipes)} sourced combinations')

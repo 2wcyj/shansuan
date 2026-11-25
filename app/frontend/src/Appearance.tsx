@@ -25,7 +25,7 @@ export function AppearanceProvider({children}:{children:ReactNode}){
     const resolved=value==='system'?(systemDark?'dark':'light'):value;
     root.dataset.theme=resolved;
     root.dataset.appearance=value;
-    document.querySelector('meta[name="theme-color"]')?.setAttribute('content',resolved==='dark'?'#111321':'#eef3fa');
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content',resolved==='dark'?'#101e19':'#f6f4ec');
   },[value,systemDark]);
   const change=(next:Appearance)=>{
     setValue(next);

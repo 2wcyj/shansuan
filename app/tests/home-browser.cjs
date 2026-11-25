@@ -14,10 +14,11 @@ module.exports=async({page,open,call,check,day,output})=>{
       const first=cards[0].getBoundingClientRect();
       for(const card of cards){
         const bounds=card.getBoundingClientRect();
-        if(Math.abs(bounds.x-first.x)>1||Math.abs(bounds.width-first.width)>1)return 'cards not in a single column';
+        if(innerWidth>600&&(Math.abs(bounds.x-first.x)>1||Math.abs(bounds.width-first.width)>1))return 'desktop cards not in a single column';
+        if(innerWidth>=351&&innerWidth<=600&&card.classList.contains('weather-protein')&&bounds.width>=first.width)return 'mobile summary cards not in two columns';
         const copy=card.querySelector('.home-card-copy').getBoundingClientRect();
         const value=card.querySelector('.home-value')?.getBoundingClientRect();
-        if(value&&copy.right>value.left+1)return 'number overlaps description';
+        if(value&&copy.right>value.left+1&&copy.bottom>value.top+1&&value.bottom>copy.top+1)return 'number overlaps description';
         for(const item of card.querySelectorAll('.home-card-copy,.home-value,.home-card-note,.home-card-meta')){
           const b=item.getBoundingClientRect();
           if(b.left<bounds.left||b.right>bounds.right||b.bottom>bounds.bottom)return 'card content clipped';
@@ -27,7 +28,7 @@ module.exports=async({page,open,call,check,day,output})=>{
     });
     assert.equal(issue,null,`homepage at ${width}px: ${issue}`);
     await page.evaluate(()=>window.scrollTo(0,document.body.scrollHeight));
-    assert(await page.evaluate(()=>document.querySelector('.weather-feelings').getBoundingClientRect().bottom<document.querySelector('.home-assistant-dock').getBoundingClientRect().top),'floating bar covers last card');
+    assert(await page.evaluate(()=>document.querySelector('.weather-feelings').getBoundingClientRect().bottom<document.querySelector(innerWidth<=600?'.mobile-primary-nav':'.home-assistant-dock').getBoundingClientRect().top),'floating bar covers last card');
     await page.evaluate(()=>window.scrollTo(0,0));
   }
 

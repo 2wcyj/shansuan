@@ -1,3 +1,4 @@
+import {ClipboardCheck,Utensils,Heart,NotebookPen} from 'lucide-react';
 import {useState} from 'react';
 import {Link} from 'react-router-dom';
 import {useQuery} from '@tanstack/react-query';
@@ -66,6 +67,7 @@ function FeedbackForm({date,value}:{date:string,value:Data|null}){
       const result=await a.run(()=>api('/feedback/'+date,'PUT',{...body,request_key:requestKey()}),'反馈与明日调整已保存');
       if(result)setEmergency((result as Data).emergency??'');
     }}>
+      <p className="feedback-save-state" role="status"><ClipboardCheck size={17}/>{a.busy?'保存中…':a.error?'保存失败，输入已保留':a.message?'保存成功':JSON.stringify(v)!==JSON.stringify(value??defaults)?'已选择，尚未保存':value?'已保存当日反馈':'今天尚未反馈'}</p>
       <Field label="今天最明显的情况（选一项即可）">
         <select value={quick} onChange={e=>selectQuick(e.target.value)}>
           <option value="">先不记录</option>
@@ -75,17 +77,18 @@ function FeedbackForm({date,value}:{date:string,value:Data|null}){
       <p className="muted">其余反馈都可留空；需要时再展开补充。</p>
       <details>
         <summary>补充其他感受（可选）</summary>
-        <div className="grid two">{fields.map(([key,label,options])=><Field key={key} label={label}><select value={v[key]} onChange={e=>setKey(key,e.target.value)}>{options.map(x=><option key={x}>{x}</option>)}</select></Field>)}
+        <section className="feedback-group"><h3><Utensils size={18}/>饮食执行、饱腹与口味</h3><div className="grid two">{fields.filter(([key])=>key!=='energy').map(([key,label,options])=><Field key={key} label={label}><select value={v[key]} onChange={e=>setKey(key,e.target.value)}>{options.map(x=><option key={x}>{x}</option>)}</select></Field>)}
           <Field label="是否出现暴食"><select value={v.binge===null?'':String(v.binge)} onChange={e=>setKey('binge',e.target.value===''?null:e.target.value==='true')}><option value="">未填</option><option value="false">没有</option><option value="true">有</option></select></Field>
         </div>
+        </section><section className="feedback-group"><h3><Heart size={18}/>精力与身体感受</h3><Field label="精力状态"><select value={v.energy} onChange={e=>setKey('energy',e.target.value)}>{['未填','良好','一般','疲劳'].map(x=><option key={x}>{x}</option>)}</select></Field>
         <Field label="是否出现不适"><select value={v.discomfort_status} onChange={e=>set({...v,discomfort_status:e.target.value,symptoms:[],suspect_food_ids:[]})}>{['未填','无','有'].map(x=><option key={x}>{x}</option>)}</select></Field>
         {v.discomfort_status==='有'&&<>
           <Tags label="不适感受（多选，可自定义）" options={['胃胀','胃痛','腹泻','便秘','恶心','皮疹']} value={v.symptoms} onChange={x=>setKey('symptoms',x)}/>
           <fieldset><legend>需要核对的当日食物（可选，不代表已确定原因）</legend>{Array.from(new Map((records.data?.records??[]).flatMap((r:Data)=>r.items).map((i:Data)=>[i.food_id,i])).values()).map((it:any)=><label key={it.food_id} className="check-option"><input type="checkbox" checked={v.suspect_food_ids.includes(it.food_id)} onChange={e=>setKey('suspect_food_ids',e.target.checked?[...v.suspect_food_ids,it.food_id]:v.suspect_food_ids.filter((x:string)=>x!==it.food_id))}/>{it.name}</label>)}{!records.data?.record_count&&<p className="muted">这一天还没有饮食记录，可先补记，再核对相关食物。</p>}</fieldset>
         </>}
-        <Field label="特殊情况（可选）"><textarea maxLength={1500} value={v.special} onChange={e=>setKey('special',e.target.value)} placeholder="例如出差、加班、聚餐或疲劳"/></Field>
+        </section><section className="feedback-group"><h3><NotebookPen size={18}/>其他情况与想法</h3><Field label="特殊情况（可选）"><textarea maxLength={1500} value={v.special} onChange={e=>setKey('special',e.target.value)} placeholder="例如出差、加班、聚餐或疲劳"/></Field>
         <Field label="临时目标或想调整的地方（可选）"><input maxLength={300} value={v.temporary_goal} onChange={e=>setKey('temporary_goal',e.target.value)}/></Field>
-      </details>
+      </section></details>
       <p className="muted">临时文字不会直接改变健康限制或处方。胸痛、呼吸困难、意识异常或严重过敏请立即寻求医疗帮助，必要时拨打120。</p>
       <button className="primary" disabled={a.busy}>保存反馈并检查明日方案</button>
       <Notice action={a}/>

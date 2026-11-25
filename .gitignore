@@ -33,3 +33,14 @@ password.txt
 *.sqlite
 *.sqlite3
 *.enc
+# Private commercial documents and material never meant for open source
+膳算软著合作开发合同/
+项目汇报PPT/
+膳算手机连接/
+.document-output/
+.ppt-build-stm32/
+.security/
+
+# Stray personal photos or scans dropped at the repository root
+/*.jpg
+/*.jpeg

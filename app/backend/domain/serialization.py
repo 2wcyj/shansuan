@@ -1,0 +1,6 @@
+"""Platform-independent canonical JSON used for signatures and idempotency."""
+import json
+
+
+def encode(value):
+    return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(',', ':'), allow_nan=False)

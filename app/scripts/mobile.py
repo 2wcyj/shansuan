@@ -157,6 +157,7 @@ def launch(host_override=None):
     print(f"手机连接已启动：{config['url']}\n请将桌面上的连接文件私下导入膳算安卓应用。电脑和手机需连接同一 Wi-Fi。", flush=True)
     uvicorn.run(create_mobile_app(host, config['token']), host=host, port=18766,
         ssl_certfile=str(private / 'server.crt'), ssl_keyfile=str(private / 'server.key'),
+        ssl_keyfile_password=config['token'],
         access_log=False, log_level='warning')
 
 

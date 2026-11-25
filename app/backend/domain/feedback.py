@@ -4,7 +4,7 @@ import hashlib
 from typing import Literal
 from pydantic import BaseModel,Field,model_validator,ConfigDict,ValidationError
 from app.backend.errors import AppError,conflict
-from app.backend.storage.database import encode
+from .serialization import encode
 from .food import day,Foods,NUTRIENTS
 from .plans import generate,profile_gate
 from .records import summary

@@ -1,6 +1,6 @@
 import {useRef,useState,useEffect,ReactNode} from 'react';
 import {useQueryClient} from '@tanstack/react-query';
-import {api} from './api';
+import {api,apiFetch} from './api';
 export function Card({title,children,className='',id}:{title?:string,children:ReactNode,className?:string,id?:string}){return <section id={id} className={'card '+className}>{title&&<h2>{title}</h2>}{children}</section>}
 export function Field({label,hint,children}:{label:string,hint?:string,children:ReactNode}){return <label className="field"><span>{label}</span>{children}{hint&&<small className="muted">{hint}</small>}</label>}
 export function useAction(){const [busy,setBusy]=useState(false),[error,setError]=useState(''),[message,setMessage]=useState('');const q=useQueryClient();return {busy,error,message,clear:()=>{setError('');setMessage('')},run:async(fn:()=>Promise<unknown>,success='已保存')=>{setBusy(true);setError('');setMessage('');try{const r=await fn();await q.invalidateQueries();setMessage(success);return r;}catch(e){setError((e as Error).message);return undefined;}finally{setBusy(false)}}};}
@@ -9,8 +9,7 @@ export function Dialog({title,children,onClose}:{title:string,children:ReactNode
 export function LoadError({error,retry}:{error:Error|null,retry:()=>void}){return error?<div role="alert" className="error">{error.message}<button onClick={retry}>重试</button></div>:<p role="status">正在读取本机文件…</p>}
 export async function download(path:string,filename:string,method='GET',body?:unknown){
   await api('/status');
-  const session=await fetch('/api/session',{cache:'no-store'}).then(r=>r.json());
-  const r=await fetch('/api'+path,{method,headers:{'X-CSRF-Token':session.csrf,...(body?{'Content-Type':'application/json'}:{})},body:body?JSON.stringify(body):undefined,cache:'no-store'});
+  const r=await apiFetch(path,{method,headers:body?{'Content-Type':'application/json'}:undefined,body:body?JSON.stringify(body):undefined});
   if(!r.ok)throw new Error((await r.json()).error.message);
   const url=URL.createObjectURL(await r.blob());const a=document.createElement('a');a.href=url;a.download=filename;a.click();setTimeout(()=>URL.revokeObjectURL(url),10000);
 }

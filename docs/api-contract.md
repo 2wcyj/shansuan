@@ -35,7 +35,11 @@
 | GET /feedback/{date} | feedback/adjustment；检查相关到期调整 |
 | PUT /feedback/{date} | 反馈字段、version/request_key；同时生成可解释次日调整 |
 | POST /adjustments/{date} | version、action apply/restore、request_key；依据过期返回409，复杂条件拒绝应用 |
-| GET /reports?end= | 连续七日、记录覆盖、均值范围、主餐执行、生活/体重与温和建议 |
+| GET /reports?end=&days= | `days` 仅接受 7 或 30，默认 7；连续窗口、记录覆盖、均值范围、主餐执行、生活/体重/体征与温和建议；非法窗口返回 400 |
+| GET /vitals?date= | 指定日期全部体征记录；同日多条按创建时间返回，不合并 |
+| POST /vitals | date/time/systolic/diastolic/heart_rate/note/request_key；血压必须成组填写且收缩压高于舒张压；可选心率；返回 `warnings` 提示核对极端读数，但保留原始记录 |
+| PUT /vitals/{id} | 同 POST，需当前 version；版本不符返回 409 |
+| POST /vitals/{id}/delete | version/request_key；删除后报告对应点消失 |
 | GET /data/backups | items及warning |
 | POST /data/backup | password/confirmation；经校验便携备份二进制下载 |
 | POST /data/restore/check | multipart file/password；校验并返回10分钟ticket、created_at、counts、scope |

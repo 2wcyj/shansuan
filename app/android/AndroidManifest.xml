@@ -1,7 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="cn.shansuan.mobile">
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.CAMERA" />
-    <application android:theme="@android:style/Theme.Material.Light.NoActionBar" android:label="膳算" android:usesCleartextTraffic="false" android:allowBackup="false" android:fullBackupContent="false" android:networkSecurityConfig="@xml/network_security_config">
+    <application android:theme="@android:style/Theme.Material.Light.NoActionBar" android:label="膳算" android:icon="@mipmap/ic_launcher" android:roundIcon="@mipmap/ic_launcher" android:usesCleartextTraffic="false" android:allowBackup="false" android:fullBackupContent="false" android:networkSecurityConfig="@xml/network_security_config">
         <activity android:name=".MainActivity" android:exported="true" android:screenOrientation="unspecified">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

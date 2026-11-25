@@ -1,0 +1,13 @@
+.git
+.venv
+**/__pycache__
+**/*.pyc
+**/.env
+**/*.db
+**/*.mnab
+**/*.mnal
+**/photos
+.tools
+.test-output
+app/frontend/node_modules
+app/frontend/dist

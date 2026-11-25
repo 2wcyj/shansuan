@@ -164,7 +164,7 @@ def change(s,d,meal_id,body):
             if action=='confirm':
                 r=save_record(s,{'date':d,'meal':meal['meal'],'time':body.get('time'),'items':[{'food_id':it['food_id'],'grams':it['grams']} for it in actual],'source':'plan','plan_id':d,'meal_id':meal_id,'satiety':body.get('satiety'),'liking':body.get('liking')})
                 meal['record_ids'].append(r['id']);meal['status']='recorded'
-                s.conn.execute('INSERT INTO links VALUES (?,?,?,?)',('plan',d,'record',r['id']))
+                s.link('plan', d, 'record', r['id'])
             else:
                 meal['recommendation']=rec;meal['recipe_id']=rec['id'];plan['manual']=True
                 choices=[c for c in candidates(s,p,meal['meal'],date.fromisoformat(d),energy=rec['nutrition']['energy']['known']) if c['id']!=rec['id']]

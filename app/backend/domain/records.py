@@ -84,6 +84,41 @@ def drink(s,body):
         return s.put('life',d,data,day=d,version=old['version'] if old else 0)
 
 
+VITAL_LIMITS={'systolic':(50,300),'diastolic':(20,200),'heart_rate':(25,240)}
+
+
+def save_vital(s,body,id=None):
+    """Optional blood pressure and resting heart rate; several readings per day."""
+    d=day(body.get('date'))
+    try:datetime.strptime(str(body.get('time','')),'%H:%M')
+    except (TypeError,ValueError):raise AppError('请填写有效的测量时间')
+    systolic=body.get('systolic');diastolic=body.get('diastolic');heart=body.get('heart_rate')
+    if (systolic is None)!=(diastolic is None):raise AppError('血压需要同时填写收缩压和舒张压')
+    if systolic is not None:
+        systolic=number(systolic,*VITAL_LIMITS['systolic'],'收缩压')
+        diastolic=number(diastolic,*VITAL_LIMITS['diastolic'],'舒张压')
+        if systolic<=diastolic:raise AppError('收缩压应高于舒张压，请核对读数')
+    if heart is not None:heart=number(heart,*VITAL_LIMITS['heart_rate'],'静息心率')
+    if systolic is None and heart is None:raise AppError('请至少填写一组血压或静息心率')
+    old=s.get('vital',id) if id else None
+    if old and body.get('version')!=old['version']:raise AppError('记录已更新，请刷新后重试','conflict',409)
+    data={'time':str(body.get('time','')),'systolic':int(systolic) if systolic is not None else None,'diastolic':int(diastolic) if diastolic is not None else None,'heart_rate':int(heart) if heart is not None else None,'note':str(body.get('note',''))[:500],'source':(old or {}).get('source','manual')}
+    warnings=[]
+    if systolic is not None and (systolic>=180 or diastolic>=120):warnings.append('血压读数明显偏高；请核对测量方式与身体状况，如有不适及时就医。')
+    if systolic is not None and (systolic<=90 or diastolic<=50):warnings.append('血压读数偏低；请核对是否重复测量，避免单次读数下结论。')
+    if heart is not None and (heart>=120 or heart<=45):warnings.append('静息心率超出常见范围；请确认是否在安静状态下测量。')
+    saved=s.put('vital',id or uuid.uuid4().hex,data,day=d,version=old['version'] if old else 0)
+    return {**saved,'warnings':warnings}
+
+
+def delete_vital(s,id,version):
+    return s.delete('vital',id,version)
+
+
+def list_vitals(s,d):
+    return s.list('vital',day(d))
+
+
 def summary(s,d):
     d=day(d);records=s.list('record',d);l=s.get('life',d)
     return {'date':d,'records':records,'nutrition':aggregate([i for r in records for i in r['items']]),'life':l,'record_count':len(records),'food_complete':bool(l and l.get('food_complete')),'coverage':'没有饮食记录' if not records else '用户确认当日记录完整' if l and l.get('food_complete') else '仅代表已记录部分，未确认完整'}

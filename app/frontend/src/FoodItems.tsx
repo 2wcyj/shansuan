@@ -1,9 +1,10 @@
+import {MacroRing} from './NutritionRing';
 import {useState} from 'react';
 import {useQuery} from '@tanstack/react-query';
 import {api,Data,requestKey} from './api';
 import {Dialog,Field,Notice,useAction,LoadError} from './ui';
 export const nutrients:Record<string,[string,string]>={energy:['热量','kcal'],protein:['蛋白质','g'],fat:['脂肪','g'],carbs:['碳水','g'],fiber:['膳食纤维','g'],sugar:['总糖','g'],sodium:['钠','mg'],purine:['嘌呤','mg']};
-export function Nutrition({value,compact=false}:{value:Data,compact?:boolean}){return <div className={compact?'nutrition compact':'nutrition'}>{Object.entries(value??{}).filter(([k])=>!compact||['energy','protein','fat','carbs'].includes(k)).map(([k,n]:[string,any])=><div key={k}><span>{nutrients[k]?.[0]??k}</span><strong>{n.known===null?'未知':`${Math.round(n.known*10)/10}${n.complete?'':'（已知部分）'}`} <small>{n.unit}</small></strong>{n.unknown>0&&<small className="muted">{n.unknown} 项数据未知</small>}</div>)}</div>}
+export function Nutrition({value,compact=false}:{value:Data,compact?:boolean}){return <div className="nutrition-display"><MacroRing value={value} compact={compact}/><div className={compact?'nutrition compact':'nutrition'}>{Object.entries(value??{}).filter(([k])=>!compact||['energy','protein','fat','carbs'].includes(k)).map(([k,n]:[string,any])=><div key={k}><span>{nutrients[k]?.[0]??k}</span><strong>{n.known===null?'未知':`${Math.round(n.known*10)/10}${n.complete?'':'（已知部分）'}`} <small>{n.unit}</small></strong>{n.unknown>0&&<small className="muted">{n.unknown} 项数据未知</small>}</div>)}</div></div>}
 export function FoodItems({items,onChange}:{items:Data[],onChange:(v:Data[])=>void}){
  const q=useQuery({queryKey:['foods'],queryFn:()=>api('/foods')}),[search,setSearch]=useState(''),[custom,setCustom]=useState<Data|null>();
  if(!q.data)return <LoadError error={q.error} retry={()=>q.refetch()}/>;

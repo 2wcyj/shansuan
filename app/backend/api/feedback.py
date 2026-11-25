@@ -17,5 +17,5 @@ def apply(date:str,request:Request,body:dict):
     s=request.app.state.store
     return mutation(s,body,lambda:apply_adjustment(s,date,body),'adjustment-'+date)
 @router.get('/reports')
-def reports(request:Request,end:str):
-    s=request.app.state.store;reconcile(s);return report(s,end)
+def reports(request:Request,end:str,days:int=7):
+    s=request.app.state.store;reconcile(s);return report(s,end,days)

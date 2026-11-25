@@ -63,7 +63,7 @@ module.exports=async({browser,url,call,check,day,output})=>{
     });
     await check('appearance eight pages in both themes, responsive screenshots and text contrast',async()=>{
       for(const theme of ['dark','light']){
-        await open('/profile');await switchTo(theme);
+        await page.setViewportSize({width:1280,height:900});await open('/profile');await switchTo(theme);
         for(const width of [1280,390,320]){
           await page.setViewportSize({width,height:900});
           for(const route of ['/','/meals','/photo','/chat','/records','/feedback','/report','/profile']){
@@ -135,7 +135,7 @@ module.exports=async({browser,url,call,check,day,output})=>{
         await page.screenshot({animations:'disabled',path:path.join(output,`appearance-home-${theme}-overview.png`)});
         await page.setViewportSize({width:390,height:844});
         await page.evaluate(()=>scrollTo(0,document.body.scrollHeight));
-        assert(await page.evaluate(()=>document.querySelector('.weather-feelings').getBoundingClientRect().bottom<document.querySelector('.home-assistant-dock').getBoundingClientRect().top));
+        assert(await page.evaluate(()=>document.querySelector('.weather-feelings').getBoundingClientRect().bottom<document.querySelector('.mobile-primary-nav').getBoundingClientRect().top));
         await page.screenshot({animations:'disabled',path:path.join(output,`appearance-home-${theme}-bottom.png`)});
       }
     });
