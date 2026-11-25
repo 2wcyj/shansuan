@@ -177,10 +177,10 @@ def create_cloud_app(settings: CloudSettings, readiness_probe: Callable | None =
                 cache['redis'] = False
         if not all(dependencies.values()):
             return JSONResponse({'status': 'not_ready', 'dependencies': dependencies,
-                                 'cache': cache}, status_code=503)
+                                 **({'cache': cache} if cache else {})}, status_code=503)
         # Redis is the shared fast path; PostgreSQL still carries sessions when it is down.
         status = 'ready' if all(cache.values()) else 'degraded'
-        return {'status': status, 'dependencies': dependencies, 'cache': cache}
+        return {'status': status, 'dependencies': dependencies, **({'cache': cache} if cache else {})}
 
     return app
 
